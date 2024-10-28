@@ -1,0 +1,58 @@
+<template>
+  <div>
+    <h1>Login</h1>
+    <input v-model="username" placeholder="Username" />
+    <input v-model="password" type="password" placeholder="Password" />
+    <button @click="login">Login</button>
+
+    <div v-if="loggedIn">
+      <h2>Create VM</h2>
+      <input v-model="vmName" placeholder="VM Name" />
+      <button @click="createVM">Create VM</button>
+      <p>{{ message }}</p>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+      vmName: '',
+      token: '',
+      message: '',
+      loggedIn: false,
+    };
+  },
+  methods: {
+    async login() {
+      try {
+        const response = await axios.post('http://localhost:3000/login', {
+          username: this.username,
+          password: this.password,
+        });
+        this.token = response.data.token;
+        this.loggedIn = true;
+      } catch (error) {
+        this.message = 'Login failed';
+      }
+    },
+    async createVM() {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/create-vm',
+          { vmName: this.vmName },
+          { headers: { Authorization: this.token } }
+        );
+        this.message = `VM created with Root Password: ${response.data.rootPassword} and User Password: ${response.data.userPassword}`;
+      } catch (error) {
+        this.message = 'VM creation failed';
+      }
+    },
+  },
+};
+</script>
